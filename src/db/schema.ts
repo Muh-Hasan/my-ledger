@@ -8,17 +8,23 @@ import { relations } from "drizzle-orm";
 // channel, forex holding, brokerage.
 
 export const accounts = sqliteTable("accounts", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(), // "HBL Main", "JazzCash", "Cash at Home", "USD Cash"
-  type: text("type", {
-    enum: ["bank", "e_wallet", "cash", "payment_channel", "forex_holding", "brokerage"],
+  id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
+  name: text().notNull(), // "HBL Main", "JazzCash", "Cash at Home", "USD Cash"
+  type: text({
+    enum: [
+      "bank",
+      "e_wallet",
+      "cash",
+      "payment_channel",
+      "forex_holding",
+      "brokerage",
+    ],
   }).notNull(),
-  currency: text("currency").notNull(), // PKR, USD, EUR, etc.
-  initialBalance: integer("initial_balance").notNull().default(0), // smallest unit (paisa/cents)
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: text("created_at")
+  currency: text().notNull(), // PKR, USD, EUR, etc.
+  balance: integer().notNull().default(0), // smallest unit (paisa/cents)
+  createdAt: integer({ mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date().toISOString()),
+    .$defaultFn(() => new Date()),
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -28,15 +34,14 @@ export const accounts = sqliteTable("accounts", {
 // Add, edit, delete without touching schema.
 
 export const categories = sqliteTable("categories", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(), // "Food", "Travel", "Family Support", "Gift", etc.
-  type: text("type", {
+  id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
+  name: text().notNull(), // "Food", "Travel", "Family Support", "Gift", etc.
+  type: text({
     enum: ["expense", "inflow"],
   }).notNull(), // which transaction type this category belongs to
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: text("created_at")
+  createdAt: integer({ mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date().toISOString()),
+    .$defaultFn(() => new Date()),
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -56,68 +61,68 @@ export const categories = sqliteTable("categories", {
 //   transfer       → both fromAccountId and toAccountId
 
 export const transactions = sqliteTable("transactions", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  date: text("date").notNull(), // YYYY-MM-DD
+  id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
+  date: integer({ mode: "timestamp" }).notNull(), // YYYY-MM-DDD
 
-  type: text("type", {
+  type: text({
     enum: ["income", "expense", "inflow", "transfer"],
   }).notNull(),
 
-  amount: integer("amount").notNull(), // smallest currency unit
-  currency: text("currency").notNull(), // original currency
+  amount: integer({ mode: "number" }).notNull(), // smallest currency unit
+  currency: text().notNull(), // original currency
 
   // ── Account references ──
-  fromAccountId: integer("from_account_id").references(() => accounts.id),
-  toAccountId: integer("to_account_id").references(() => accounts.id),
+  fromAccountId: integer({ mode: "number" }).references(() => accounts.id),
+  toAccountId: integer({ mode: "number" }).references(() => accounts.id),
 
   // ── Category (expense & inflow) ──
-  categoryId: integer("category_id").references(() => categories.id),
+  categoryId: integer({ mode: "number" }).references(() => categories.id),
 
   // ── Income fields (freelance/fulltime only) ──
-  incomeType: text("income_type", {
+  incomeType: text({
     enum: ["freelance", "fulltime"],
   }),
-  sourceType: text("source_type", {
+  sourceType: text({
     enum: ["platform", "direct", "employer"],
   }),
-  sourceName: text("source_name"), // "Fiverr", "Upwork", client name, employer
-  paymentChannel: text("payment_channel", {
+  sourceName: text(), // "Fiverr", "Upwork", client name, employer
+  paymentChannel: text({
     enum: ["wise", "payoneer", "wire_transfer", "elevate_pay"],
   }),
-  pkrReceived: integer("pkr_received"), // final PKR in bank (null = pending)
+  pkrReceived: integer({ mode: "number" }), // final PKR in bank (null = pending)
 
   // ── Inflow fields ──
-  inflowSource: text("inflow_source"), // "Father", "Amazon Refund", etc.
+  inflowSource: text(), // "Father", "Amazon Refund", etc.
 
   // ── Shared ──
-  description: text("description"),
-  notes: text("notes"),
-  createdAt: text("created_at")
+  notes: text(),
+
+  createdAt: integer({ mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date().toISOString()),
+    .$defaultFn(() => new Date()),
 });
 
 // ═══════════════════════════════════════════════════════════════
 // 4. INVESTMENTS — STOCKS
 // ═══════════════════════════════════════════════════════════════
 
-export const investmentsStock = sqliteTable("investments_stock", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  date: text("date").notNull(), // YYYY-MM-DD
-  action: text("action", { enum: ["buy", "sell"] }).notNull(),
-  stockSymbol: text("stock_symbol").notNull(),
-  stockName: text("stock_name"),
-  quantity: real("quantity").notNull(),
-  pricePerShare: integer("price_per_share").notNull(),
-  totalAmount: integer("total_amount").notNull(),
-  sourceAccountId: integer("source_account_id")
-    .notNull()
-    .references(() => accounts.id),
-  notes: text("notes"),
-  createdAt: text("created_at")
-    .notNull()
-    .$defaultFn(() => new Date().toISOString()),
-});
+// export const investmentsStock = sqliteTable("investments_stock", {
+//   id: integer("id").primaryKey({ autoIncrement: true }),
+//   date: text("date").notNull(), // YYYY-MM-DD
+//   action: text("action", { enum: ["buy", "sell"] }).notNull(),
+//   stockSymbol: text("stock_symbol").notNull(),
+//   stockName: text("stock_name"),
+//   quantity: real("quantity").notNull(),
+//   pricePerShare: integer("price_per_share").notNull(),
+//   totalAmount: integer("total_amount").notNull(),
+//   sourceAccountId: integer("source_account_id")
+//     .notNull()
+//     .references(() => accounts.id),
+//   notes: text("notes"),
+//   createdAt: text("created_at")
+//     .notNull()
+//     .$defaultFn(() => new Date().toISOString()),
+// });
 
 // ═══════════════════════════════════════════════════════════════
 // 5. INVESTMENTS — FOREX
@@ -125,19 +130,19 @@ export const investmentsStock = sqliteTable("investments_stock", {
 // Physical foreign currency cash.
 // Buy: paid X PKR for Y USD. Sell: sold Y USD got X PKR.
 
-export const investmentsForex = sqliteTable("investments_forex", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  date: text("date").notNull(), // YYYY-MM-DD
-  action: text("action", { enum: ["buy", "sell"] }).notNull(),
-  currency: text("currency").notNull(), // USD, EUR, etc.
-  foreignAmount: integer("foreign_amount").notNull(),
-  pkrAmount: integer("pkr_amount").notNull(),
-  source: text("source"), // dealer name
-  notes: text("notes"),
-  createdAt: text("created_at")
-    .notNull()
-    .$defaultFn(() => new Date().toISOString()),
-});
+// export const investmentsForex = sqliteTable("investments_forex", {
+//   id: integer("id").primaryKey({ autoIncrement: true }),
+//   date: text("date").notNull(), // YYYY-MM-DD
+//   action: text("action", { enum: ["buy", "sell"] }).notNull(),
+//   currency: text("currency").notNull(), // USD, EUR, etc.
+//   foreignAmount: integer("foreign_amount").notNull(),
+//   pkrAmount: integer("pkr_amount").notNull(),
+//   source: text("source"), // dealer name
+//   notes: text("notes"),
+//   createdAt: text("created_at")
+//     .notNull()
+//     .$defaultFn(() => new Date().toISOString()),
+// });
 
 // ═══════════════════════════════════════════════════════════════
 // RELATIONS
@@ -146,7 +151,7 @@ export const investmentsForex = sqliteTable("investments_forex", {
 export const accountsRelations = relations(accounts, ({ many }) => ({
   outgoingTransactions: many(transactions, { relationName: "fromAccount" }),
   incomingTransactions: many(transactions, { relationName: "toAccount" }),
-  stockInvestments: many(investmentsStock),
+  // stockInvestments: many(investmentsStock),
 }));
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -170,12 +175,12 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   }),
 }));
 
-export const investmentsStockRelations = relations(
-  investmentsStock,
-  ({ one }) => ({
-    sourceAccount: one(accounts, {
-      fields: [investmentsStock.sourceAccountId],
-      references: [accounts.id],
-    }),
-  })
-);
+// export const investmentsStockRelations = relations(
+//   investmentsStock,
+//   ({ one }) => ({
+//     sourceAccount: one(accounts, {
+//       fields: [investmentsStock.sourceAccountId],
+//       references: [accounts.id],
+//     }),
+//   }),
+// );

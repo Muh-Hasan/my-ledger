@@ -66,6 +66,7 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import AddAccountForm from "@/components/account/add-account-form"
 
 const money = new Intl.NumberFormat("en-PK", {
   currency: "PKR",
@@ -393,7 +394,8 @@ export default function Home() {
               <Download />
               Export CSV
             </Button>
-            <AccountDialog form={accountForm} setLatestEntry={setLatestEntry} />
+            <AddAccountForm />
+            {/* <AccountDialog form={accountForm} setLatestEntry={setLatestEntry} /> */}
             <CategoryDialog
               categories={managedCategories}
               form={categoryForm}
@@ -661,59 +663,7 @@ export default function Home() {
   )
 }
 
-function AccountDialog({
-  form,
-  setLatestEntry,
-}: {
-  form: ReturnType<typeof useForm<AccountInput, unknown, AccountOutput>>
-  setLatestEntry: React.Dispatch<React.SetStateAction<Entry>>
-}) {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <WalletCards />
-          Account
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add account</DialogTitle>
-          <DialogDescription>Create a bank, wallet, cash, payment channel, or holding account.</DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form
-            className="grid gap-4 sm:grid-cols-2"
-            onSubmit={form.handleSubmit((data) =>
-              setLatestEntry({
-                label: "Account added",
-                value: `${data.name} (${data.currency})`,
-              })
-            )}
-          >
-            <TextField control={form.control} name="name" label="Name" />
-            <SelectField
-              control={form.control}
-              name="type"
-              label="Type"
-              options={["bank", "e_wallet", "cash", "payment_channel", "forex_holding", "brokerage"]}
-            />
-            <SelectField
-              control={form.control}
-              name="currency"
-              label="Currency"
-              options={["PKR", "USD", "EUR", "GBP", "AED", "SAR"]}
-            />
-            <NumberField control={form.control} name="initialBalance" label="Initial balance" />
-            <Button className="sm:col-span-2" type="submit">
-              Save Account
-            </Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  )
-}
+
 
 function CategoryDialog({
   categories,

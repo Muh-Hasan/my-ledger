@@ -15,9 +15,7 @@ export const accounts = sqliteTable("accounts", {
       "bank",
       "e_wallet",
       "cash",
-      "payment_channel",
       "forex_holding",
-      "brokerage",
     ],
   }).notNull(),
   currency: text().notNull(), // PKR, USD, EUR, etc.

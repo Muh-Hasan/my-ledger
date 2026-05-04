@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1777312505188,
-      "tag": "0000_rich_speed",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1777638745149,
-      "tag": "0001_sparkling_thundra",
+      "when": 1777888418736,
+      "tag": "0000_amusing_eternals",
       "breakpoints": true
     }
   ]
